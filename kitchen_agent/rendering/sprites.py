@@ -42,9 +42,9 @@ EMOJI: dict[str, str] = {
     # containers (by `name` first)
     "mixing bowl": "🥣",
     "whisk":       "🥄",
-    "cake tin":    "🎂",
+    "cake tin":    "🫙",
     # containers (by `container_type` as fallback)
     "bowl": "🥣",
     "pan":  "🍳",
-    "tin":  "🎂",
+    "tin":  "🫙",
 }

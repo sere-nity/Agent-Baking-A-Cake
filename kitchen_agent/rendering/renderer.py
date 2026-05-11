@@ -34,6 +34,7 @@ from kitchen_agent.rendering.sprites import (
 from kitchen_agent.world.schemas import (
     Appliance,
     Container,
+    CookState,
     Facing,
     Ingredient,
     World,
@@ -200,6 +201,27 @@ def _get_small_font() -> pygame.font.Font:
 
 def _tile_px(x: int, y: int) -> tuple[int, int]:
     return (x * TILE_SIZE, y * TILE_SIZE + TOP_MARGIN_PX)
+
+
+EMOJI_EXTRA_LIFT_PX = 32  # extra upward shift so emojis sit on the back-of-counter
+
+
+def _appliance_sprite_center(app: Appliance) -> tuple[int, int]:
+    """Anchor point for emojis that sit on/in an appliance. Accounts for the
+    appliance's sprite height, its APPLIANCE_Y_LIFT, and an extra constant
+    EMOJI_EXTRA_LIFT_PX so glyphs hover over the back/upper part of the
+    sprite rather than dead-centre."""
+    px, py = _tile_px(app.position.x, app.position.y)
+    rect = SPRITES.get(app.appliance_type, (0, 0, 0, 0))
+    if rect[2] == 0 or rect[3] == 0:
+        return px + TILE_SIZE // 2, py + TILE_SIZE // 2 - EMOJI_EXTRA_LIFT_PX
+    sw, sh = rect[2], rect[3]
+    target_h = max(TILE_SIZE, int(round(TILE_SIZE * sh / sw)))
+    lift = APPLIANCE_Y_LIFT.get(app.appliance_type, 0)
+    return (
+        px + TILE_SIZE // 2,
+        py + TILE_SIZE - target_h // 2 - lift - EMOJI_EXTRA_LIFT_PX,
+    )
 
 
 def _scaled_sprite(
@@ -371,13 +393,20 @@ def _draw_container(
     container: Container,
     on_appliance: Appliance,
 ) -> None:
-    px, py = _tile_px(on_appliance.position.x, on_appliance.position.y)
+    cx, cy = _appliance_sprite_center(on_appliance)
     glyph = (
         EMOJI.get(container.name)
         or EMOJI.get(container.container_type)
         or f"[{container.container_type or container.name}]"
     )
-    _draw_glyph(surface, glyph, px + TILE_SIZE // 2, py + TILE_SIZE // 2)
+    _draw_glyph(surface, glyph, cx, cy)
+
+
+def _ingredient_glyph(ing: Ingredient) -> str:
+    """Pick the emoji for this ingredient. Cooked batter renders as 🍰."""
+    if ing.food == "batter" and ing.cook_state == CookState.COOKED:
+        return EMOJI.get("cake", "🍰")
+    return EMOJI.get(ing.food, f"[{ing.food}]")
 
 
 def _draw_ingredient_emoji(
@@ -385,9 +414,8 @@ def _draw_ingredient_emoji(
     ing: Ingredient,
     appliance: Appliance,
 ) -> None:
-    px, py = _tile_px(appliance.position.x, appliance.position.y)
-    text = EMOJI.get(ing.food, f"[{ing.food}]")
-    _draw_glyph(surface, text, px + TILE_SIZE // 2, py + TILE_SIZE // 2)
+    cx, cy = _appliance_sprite_center(appliance)
+    _draw_glyph(surface, _ingredient_glyph(ing), cx, cy)
 
 
 def _draw_ingredient_in_container(
@@ -395,23 +423,25 @@ def _draw_ingredient_in_container(
     ing: Ingredient,
     appliance: Appliance,
 ) -> None:
-    """Same tile as the container; offset down-right by ~12px so both are visible."""
-    px, py = _tile_px(appliance.position.x, appliance.position.y)
-    text = EMOJI.get(ing.food, f"[{ing.food}]")
-    _draw_glyph(
-        surface, text, px + TILE_SIZE // 2 + 12, py + TILE_SIZE // 2 + 12
-    )
+    """Same anchor as the container; offset down-right by ~12px so both glyphs are visible."""
+    cx, cy = _appliance_sprite_center(appliance)
+    _draw_glyph(surface, _ingredient_glyph(ing), cx + 12, cy + 12)
 
 
 def _draw_plus_marker(
     surface: pygame.Surface, appliance: Appliance, extra_count: int
 ) -> None:
-    """A small '+N' marker indicating there are more ingredients in the container."""
+    """Small '+N' badge in the appliance's top-right corner."""
+    cx, _ = _appliance_sprite_center(appliance)
     px, py = _tile_px(appliance.position.x, appliance.position.y)
+    lift = APPLIANCE_Y_LIFT.get(appliance.appliance_type, 0)
     font = _get_small_font()
     label = f"+{extra_count}"
     text_surf = font.render(label, True, LABEL_TEXT_COLOUR)
-    surface.blit(text_surf, (px + TILE_SIZE - text_surf.get_width() - 4, py + 4))
+    surface.blit(
+        text_surf,
+        (px + TILE_SIZE - text_surf.get_width() - 4, py + 4 - lift),
+    )
 
 
 def _draw_agent(surface: pygame.Surface, world: World) -> None:

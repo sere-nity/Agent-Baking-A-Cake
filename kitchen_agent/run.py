@@ -20,10 +20,21 @@ from kitchen_agent.agent.claude_agent import SYSTEM_PROMPT, ClaudeAgent, AgentDe
 from kitchen_agent.agent.tools import TOOLS
 from kitchen_agent.env.environment import KitchenEnv, StepResult
 from kitchen_agent.env.pathfinding import shortest_path
+from kitchen_agent.env.transitions import (
+    _RATE_PER_SECOND,
+    _ingredients_inside,
+    _state_for_progress,
+)
 from kitchen_agent.tasks import bake_cake, get_apple
-from kitchen_agent.world.schemas import Facing, Position
+from kitchen_agent.world.schemas import Appliance, Facing, Position, Setting
 
 TASKS = {"get_apple": get_apple, "bake_cake": bake_cake}
+
+# Per-category GIF frame durations (milliseconds).
+WALK_FRAME_MS = 180     # navigate_to: fast tile-by-tile movement
+WAIT_FRAME_MS = 600     # wait: dwell on each meaningful state change
+ACTION_FRAME_MS = 700   # everything else: leave time to read what changed
+DWELL_FRAME_MS = 900    # extra "look at the cake" frames after goal met
 
 
 def main() -> int:
@@ -32,6 +43,12 @@ def main() -> int:
     parser.add_argument("--max-steps", type=int, default=40)
     parser.add_argument("--model", default="claude-sonnet-4-6")
     parser.add_argument("--no-render", action="store_true")
+    parser.add_argument(
+        "--gif-end-pause-seconds",
+        type=float,
+        default=3.0,
+        help="Extra dwell time on the final frame before the GIF loops (default 3s).",
+    )
     args = parser.parse_args()
 
     load_dotenv()
@@ -58,11 +75,11 @@ def main() -> int:
     console.rule(f"[bold]{args.task}[/]  (model={args.model}, max_steps={args.max_steps})")
     console.print(Panel(obs.text, title="initial observation", border_style="cyan"))
 
-    frames: list[Any] = []
+    frames: list[tuple[Any, int]] = []
     if not args.no_render:
         initial = env.render()
         if initial is not None:
-            frames.append(initial)
+            frames.append((initial, ACTION_FRAME_MS))
 
     final_done = False
     with log_path.open("w") as log_file:
@@ -127,8 +144,24 @@ def main() -> int:
 
     console.print(f"[dim]log: {log_path}[/]")
     if frames and not args.no_render:
-        imageio.mimsave(str(gif_path), frames, duration=0.25, loop=0)
-        console.print(f"[dim]gif: {gif_path}  ({len(frames)} frames)[/]")
+        # When the goal was met, append a few "look at the cake" dwell frames
+        # of the final state so the success is obvious before the loop.
+        if final_done:
+            last_frame, _ = frames[-1]
+            for _ in range(3):
+                frames.append((last_frame, DWELL_FRAME_MS))
+        # Extend the very last frame's duration with the end-pause.
+        end_pause_ms = int(round(args.gif_end_pause_seconds * 1000))
+        last_frame, last_ms = frames[-1]
+        frames[-1] = (last_frame, max(last_ms, end_pause_ms))
+
+        imgs = [f for f, _ in frames]
+        durations = [ms for _, ms in frames]
+        imageio.mimsave(str(gif_path), imgs, duration=durations, loop=0)
+        console.print(
+            f"[dim]gif: {gif_path}  ({len(imgs)} frames, end pause "
+            f"{args.gif_end_pause_seconds:.1f}s)[/]"
+        )
     return 0 if final_done else 1
 
 
@@ -141,15 +174,19 @@ def _frames_for_step(
     decision: AgentDecision,
     result: StepResult,
     pre_pos: Position,
-) -> list[Any]:
-    """One frame for most actions; one frame per traversed tile for navigate_to."""
+) -> list[tuple[Any, int]]:
+    """Returns (frame, duration_ms) tuples per step.
+    - navigate_to: one frame per traversed tile, fast
+    - wait: only emit on cook-state changes + final frame, medium
+    - other: one slow frame
+    """
     if decision.tool_name == "navigate_to" and result.success:
         target_id = decision.tool_args.get("target_id")
         path = shortest_path(env.world, pre_pos, str(target_id)) if target_id else None
         if path and len(path) > 1:
             final_pos = env.world.agent.position
             final_facing = env.world.agent.facing
-            out: list[Any] = []
+            out: list[tuple[Any, int]] = []
             for i in range(1, len(path)):
                 env.world.agent.position = path[i]
                 env.world.agent.facing = (
@@ -162,15 +199,68 @@ def _frames_for_step(
                     current_thought=decision.reasoning or None,
                 )
                 if frame is not None:
-                    out.append(frame)
+                    out.append((frame, WALK_FRAME_MS))
             env.world.agent.position = final_pos
             env.world.agent.facing = final_facing
             return out
+
+    if decision.tool_name == "wait" and result.success:
+        seconds = int(decision.tool_args.get("seconds", 0) or 0)
+        if seconds > 0:
+            return _wait_animation_frames(env, decision, seconds)
+
     frame = env.render(
         current_action=decision.tool_name,
         current_thought=decision.reasoning or None,
     )
-    return [frame] if frame is not None else []
+    return [(frame, ACTION_FRAME_MS)] if frame is not None else []
+
+
+def _wait_animation_frames(
+    env: KitchenEnv, decision: AgentDecision, seconds: int
+) -> list[tuple[Any, int]]:
+    """Rewind the wait, then step one second at a time. Emit a frame ONLY
+    when an ingredient's cook_state changes, plus a final frame. End state
+    matches what env.step produced."""
+    world = env.world
+
+    world.t -= seconds
+    cooking_pairs: list[tuple[Appliance, float]] = []
+    for ent in world.entities.values():
+        if isinstance(ent, Appliance) and ent.setting != Setting.OFF:
+            cooking_pairs.append((ent, _RATE_PER_SECOND[ent.setting]))
+    for appl, rate in cooking_pairs:
+        for ing in _ingredients_inside(world, appl):
+            ing.cook_progress = max(0.0, ing.cook_progress - rate * seconds)
+            ing.cook_state = _state_for_progress(ing.cook_progress)
+
+    def _state_snapshot() -> dict[str, str]:
+        snap: dict[str, str] = {}
+        for appl, _r in cooking_pairs:
+            for ing in _ingredients_inside(world, appl):
+                snap[ing.id] = ing.cook_state.value
+        return snap
+
+    out: list[tuple[Any, int]] = []
+    last_states = _state_snapshot()
+    for s in range(seconds):
+        world.t += 1
+        for appl, rate in cooking_pairs:
+            for ing in _ingredients_inside(world, appl):
+                ing.cook_progress += rate
+                ing.cook_state = _state_for_progress(ing.cook_progress)
+        cur_states = _state_snapshot()
+        is_final_second = (s == seconds - 1)
+        any_change = any(cur_states[k] != last_states.get(k) for k in cur_states)
+        if any_change or is_final_second:
+            frame = env.render(
+                current_action=decision.tool_name,
+                current_thought=decision.reasoning or None,
+            )
+            if frame is not None:
+                out.append((frame, WAIT_FRAME_MS))
+        last_states = cur_states
+    return out
 
 
 def _face_toward(src: Position, dst: Position) -> Facing:
