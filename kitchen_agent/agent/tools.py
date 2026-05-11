@@ -87,12 +87,15 @@ TOOLS: list[dict[str, Any]] = [
         "name": "pour",
         "description": (
             "Pour every item from a held source container into an adjacent "
-            "target. The source ends up empty.\n\nPreconditions: source_id "
+            "target. The source ends up empty.\n\nIMPORTANT: the target must "
+            "be ADJACENT, not held. If you are holding both source and "
+            "target, put the target down first (e.g. place it on a counter "
+            "or appliance), then pour into it.\n\nPreconditions: source_id "
             "is held by you and is a non-empty container; target_id is "
             "adjacent and is a container or appliance.\nSide effects: "
             "target.contents gains all of source's items; source.contents "
             "is cleared.\nExample: pour(source_id='mixing_bowl', "
-            "target_id='cake_tin')."
+            "target_id='cake_tin')  # cake_tin must be sitting on a counter."
         ),
         "input_schema": {
             "type": "object",
@@ -116,9 +119,12 @@ TOOLS: list[dict[str, Any]] = [
             "If the container holds the full batter recipe (one of each: "
             "egg, flour, sugar, butter, milk), those ingredients are "
             "consumed and replaced by a single 'batter' ingredient inside "
-            "the container.\n\nPreconditions: container_id is a container "
-            "and is either held by you or adjacent.\nExample: "
-            "whisk(container_id='mixing_bowl')."
+            "the container.\n\nAfter whisking into batter, the typical flow "
+            "is: pour the batter into a baking vessel (e.g. cake_tin sitting "
+            "on a counter), pick up the vessel, place it in the oven, "
+            "set_appliance the oven to 'high', then wait.\n\n"
+            "Preconditions: container_id is a container and is either held "
+            "by you or adjacent.\nExample: whisk(container_id='mixing_bowl')."
         ),
         "input_schema": {
             "type": "object",
@@ -137,6 +143,8 @@ TOOLS: list[dict[str, Any]] = [
             "Change an adjacent appliance's setting. Valid settings: "
             "'off', 'low', 'medium', 'high'. Hot settings cook ingredients "
             "inside the appliance over time (use 'wait' to advance time).\n\n"
+            "For baking, use 'high'. Remember to set it back to 'off' once "
+            "the contents are COOKED, otherwise they will burn.\n\n"
             "Preconditions: appliance_id is an adjacent appliance; setting "
             "is one of the four values.\nExample: set_appliance("
             "appliance_id='oven', setting='high')."
@@ -162,10 +170,15 @@ TOOLS: list[dict[str, Any]] = [
         "description": (
             "Advance world time by N seconds. Ingredients inside any "
             "non-OFF appliance accumulate cook_progress and transition "
-            "through RAW → COOKING → COOKED → BURNT. Use this only when "
-            "you actually want time to pass (i.e. something is cooking) — "
-            "otherwise it just wastes turns.\n\nPreconditions: seconds is "
-            "a positive integer.\nExample: wait(seconds=10)."
+            "through RAW → COOKING → COOKED → BURNT.\n\n"
+            "Baking guidance: on the 'high' oven setting, batter reaches "
+            "COOKING after about 5 seconds, COOKED after about 14 seconds, "
+            "and BURNT around 20 seconds. Wait in SMALL CHUNKS (5 seconds "
+            "is a good size) and read the next observation to see the "
+            "current cook_state before continuing. Do not wait 30+ seconds "
+            "in one go — you will overshoot and burn the food.\n\n"
+            "Preconditions: seconds is a positive integer.\nExample: "
+            "wait(seconds=5)."
         ),
         "input_schema": {
             "type": "object",

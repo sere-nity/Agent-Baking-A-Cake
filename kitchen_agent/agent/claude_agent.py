@@ -75,11 +75,23 @@ class ClaudeAgent:
             max_tokens=self.max_tokens,
             system=self.system_prompt,
             tools=self.tools,
-            tool_choice={"type": "any"},
+            tool_choice={"type": "any", "disable_parallel_tool_use": True},
             messages=self._messages,
         )
 
-        assistant_content = [block.model_dump() for block in response.content]
+        # Keep text blocks and only the first tool_use. If the model ever
+        # emits multiple tool_uses (despite disable_parallel_tool_use), our
+        # follow-up turn only carries one tool_result and the API would
+        # reject the conversation.
+        assistant_content: list[dict[str, Any]] = []
+        seen_tool_use = False
+        for block in response.content:
+            block_dict = block.model_dump()
+            if block_dict.get("type") == "tool_use":
+                if seen_tool_use:
+                    continue
+                seen_tool_use = True
+            assistant_content.append(block_dict)
         self._messages.append({"role": "assistant", "content": assistant_content})
 
         reasoning_parts: list[str] = []
