@@ -22,6 +22,8 @@ A full successful `bake_cake` run with the above input format, recorded straight
 
 ![bake_cake demo](outputs/demo_bake_cake.gif)
 
+*Note, since I ran out of emojis to use, the sweet represents sugar and the jar represents a cake tin*
+
 
 ## Requirements
 
@@ -50,7 +52,6 @@ Expected: the agent succeeds in ~25–30 steps, about 1–2 minutes of wall cloc
 - `run_bake_cake_<ts>.jsonl` — one JSON line per turn (`tool_name`, `tool_args`, `success`, `message`, `reasoning`).
 - `run_bake_cake_<ts>.gif` — animated playback. `wait` frames are compressed in the GIF so on-screen cook time appears faster than the simulator tick — the JSONL log has the true `t`.
 
-*Note, since I ran out of emojis to use, the sweet represents sugar and the jar represents a cake tin*
 
 ## The insurance task
 
