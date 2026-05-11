@@ -36,11 +36,28 @@ class Facing(StrEnum):
     WEST = "west"
 
 
+_IN_ID_DESC = (
+    "Id of the entity that contains or supports this one "
+    "(e.g. apple's fridge, bowl's counter). None when the agent is holding it."
+)
+_CONTENTS_DESC = (
+    "Ids of entities directly contained or supported by this one "
+    "(e.g. ingredients in a bowl, containers on a counter)."
+)
+
+
 class Ingredient(BaseModel):
     kind: Literal["ingredient"] = "ingredient"
     id: str
-    name: str
-    in_id: str | None = None
+    food: str = Field(
+        description=(
+            "Stable kind identifier (e.g. 'egg', 'flour', 'batter'). "
+            "Used for recipe matching, emoji lookup, and goal checks. "
+            "Independent of `name`, which is the display string."
+        )
+    )
+    name: str = Field(description="Human-readable display name.")
+    in_id: str | None = Field(default=None, description=_IN_ID_DESC)
     cook_state: CookState = CookState.RAW
     cook_progress: float = 0.0
 
@@ -49,8 +66,8 @@ class Container(BaseModel):
     kind: Literal["container"] = "container"
     id: str
     name: str
-    in_id: str | None = None
-    contents: list[str] = Field(default_factory=list)
+    in_id: str | None = Field(default=None, description=_IN_ID_DESC)
+    contents: list[str] = Field(default_factory=list, description=_CONTENTS_DESC)
     contents_whisked: bool = False
 
 
@@ -61,7 +78,7 @@ class Appliance(BaseModel):
     position: Position
     appliance_type: str
     setting: Setting = Setting.OFF
-    contents: list[str] = Field(default_factory=list)
+    contents: list[str] = Field(default_factory=list, description=_CONTENTS_DESC)
 
 
 Entity = Annotated[

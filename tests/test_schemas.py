@@ -63,10 +63,17 @@ def _empty_world() -> World:
 
 
 def test_world_get_returns_entity() -> None:
-    apple = Ingredient(id="apple_1", name="apple")
+    apple = Ingredient(id="apple_1", food="apple", name="apple")
     w = _empty_world()
     w.entities["apple_1"] = apple
     assert w.get("apple_1") is apple
+
+
+def test_ingredient_food_is_separate_from_name() -> None:
+    """food is the stable identifier; name is the display string."""
+    ing = Ingredient(id="egg_1", food="egg", name="cracked egg")
+    assert ing.food == "egg"
+    assert ing.name == "cracked egg"
 
 
 def test_world_is_blocked_outside_grid() -> None:
@@ -103,7 +110,7 @@ def test_adjacent_entities_includes_appliance_and_contents() -> None:
         appliance_type="fridge",
         contents=["apple_1"],
     )
-    apple = Ingredient(id="apple_1", name="apple", in_id="fridge")
+    apple = Ingredient(id="apple_1", food="apple", name="apple", in_id="fridge")
     w = _empty_world()
     w.entities["fridge"] = fridge
     w.entities["apple_1"] = apple
@@ -134,7 +141,11 @@ def test_world_json_roundtrip_and_discriminator() -> None:
         setting=Setting.OFF,
     )
     apple = Ingredient(
-        id="apple_1", name="apple", in_id="fridge", cook_state=CookState.RAW
+        id="apple_1",
+        food="apple",
+        name="apple",
+        in_id="fridge",
+        cook_state=CookState.RAW,
     )
     bowl = Container(id="bowl_1", name="bowl", contents_whisked=False)
     w = World(
@@ -185,7 +196,7 @@ def test_discriminator_resolves_from_raw_dict() -> None:
         "agent": {"position": {"x": 0, "y": 0}},
         "goal": "test",
         "entities": {
-            "a": {"kind": "ingredient", "id": "a", "name": "apple"},
+            "a": {"kind": "ingredient", "id": "a", "food": "apple", "name": "apple"},
             "b": {"kind": "container", "id": "b", "name": "bowl"},
             "c": {
                 "kind": "appliance",
