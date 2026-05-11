@@ -1,6 +1,8 @@
 # kitchen-agent
 
-A 2D top-down kitchen where Claude is the chef. The agent perceives the world as text each turn, picks one tool call (`navigate_to`, `pick_up`, `place`, `pour`, `whisk`, `set_appliance`, `wait`), and the deterministic simulator advances. 
+Humanoid's vision is for robots to revolutionalise households in 2031. Thus we simulate Claude chef. 
+
+This is a 2D top-down kitchen where Claude is the chef. The agent perceives the world as text each turn, picks one tool call (`navigate_to`, `pick_up`, `place`, `pour`, `whisk`, `set_appliance`, `wait`), and the deterministic simulator advances. 
 
 **See `DESIGN.md` for the design decisions.**
 
