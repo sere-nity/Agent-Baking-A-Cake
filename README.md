@@ -5,13 +5,16 @@ A 2D top-down kitchen where Claude is the chef. The agent perceives the world as
 See `DESIGN.md` for the design decisions. 
 
 
-## Defining an input
+## Defining an Input 
 
-An "input" to the harness is a **task module** in `kitchen_agent/tasks/`. Each module exposes:
+A task lives in `kitchen_agent/tasks/` as a module with three pieces:
 
-- `starting_world() -> World` — builds the initial kitchen state (entities, positions, agent start).
-- `is_goal_met(world) -> bool` — pure verifier, called every turn after `step()`.
-- A `goal` string set on `World`, e.g. `"Bake a cake."` — the only goal-related thing the agent sees.
+- `starting_world()` — sets up the kitchen (entities, positions, agent start). Used once at the beginning.
+- `is_goal_met(world)` — pure verifier checked every turn. Programmatic by design, never trusts the agent's self-report. *E.g. for `bake_cake`: returns True only when `cake_tin` contains a `batter` ingredient with `cook_state == COOKED` — RAW, COOKING, and BURNT all fail the check.*
+- A goal string on `World` (e.g. `"Bake a cake."`).
+
+**The agent only ever sees the goal string.** The starting world and goal verifier are harness scaffolding — the agent doesn't know they exist. All actions are derived by Claude from the goal string plus the current observation; the verifier silently checks success in the background.
+
 
 ## Example run
 
