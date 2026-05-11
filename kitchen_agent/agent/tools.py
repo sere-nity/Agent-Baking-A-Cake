@@ -1,0 +1,1 @@
+# TODO: one Anthropic tool schema per action (seven total). Argument names match transition function parameters exactly (snake_case). Descriptions read like docstrings for a junior engineer — preconditions, side effects, example use.

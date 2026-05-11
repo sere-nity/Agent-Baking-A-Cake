@@ -1,0 +1,1 @@
+# TODO: seven action transitions, each (world, **args) -> (success: bool, message: str), mutating world in place. navigate_to, pick_up, place, pour, whisk, set_appliance, wait. Error messages must say what went wrong AND what would fix it.

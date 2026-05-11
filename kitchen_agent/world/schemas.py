@@ -1,0 +1,1 @@
+# TODO: Pydantic v2 schemas — Position, CookState (StrEnum), Setting (StrEnum), Ingredient, Container, Appliance, Entity (discriminated union on `kind`), Agent (position, facing, left_hand, right_hand, scratchpad, computed hands_free/holding), ActionRecord, World (width, height, walls, entities, agent, t, goal, history; methods get/adjacent_entities/is_blocked).

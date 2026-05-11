@@ -1,0 +1,1 @@
+# TODO: ClaudeAgent — __init__(client, tools, system_prompt, model="claude-sonnet-4-5"). act(observation) -> (tool_name, tool_args, reasoning). Maintain full conversation history. tool_choice={"type": "any"} to force a tool call.

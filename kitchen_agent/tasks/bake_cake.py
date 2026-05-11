@@ -1,0 +1,1 @@
+# TODO: headline task. starting_world() — base kitchen + eggs, butter, milk in fridge; flour, sugar in pantry; mixing bowl, whisk, cake tin on counter. Goal: "Bake a cake." is_goal_met(world) — cake tin contains a batter ingredient with cook_state == COOKED (not RAW, COOKING, or BURNT).

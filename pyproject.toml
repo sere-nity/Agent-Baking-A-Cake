@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kitchen-agent"
+version = "0.1.0"
+description = "LLM agent in a 2D top-down kitchen — Humanoid AI intern challenge."
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.6",
+    "pygame>=2.5",
+    "anthropic>=0.40",
+    "rich>=13.7",
+    "imageio>=2.34",
+    "numpy>=1.26",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+kitchen-agent = "kitchen_agent.run:main"
+
+[tool.setuptools.packages.find]
+include = ["kitchen_agent*"]
+
+[tool.mypy]
+strict = true
+files = ["kitchen_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

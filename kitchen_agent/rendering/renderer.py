@@ -1,0 +1,1 @@
+# TODO: render_world(world, current_action=None, current_thought=None) -> pygame.Surface. Floor/walls/appliances via SPRITES, ingredient emojis via EMOJI, agent with facing indicator, speech bubble above agent (action verb + truncated thought), bottom strip with goal. Emoji font: Apple Color Emoji on macOS, NotoColorEmoji.ttf on Linux; fall back to [bracket] labels.

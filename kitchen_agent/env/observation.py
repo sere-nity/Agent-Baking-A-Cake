@@ -1,0 +1,1 @@
+# TODO: build_observation(world) -> Observation. Observation dataclass: text: str, available_actions: list[dict]. Four markdown sections in this order: Right now / Kitchen / Goal + Notes / Recent. Second-person voice. Bullets only, no JSON.

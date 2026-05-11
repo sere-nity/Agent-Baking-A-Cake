@@ -1,0 +1,1 @@
+# TODO: KitchenEnv class — __init__(task), reset() -> Observation, step(tool_name, tool_args) -> StepResult (dispatch via dict lookup), observe() (pure), render() (stub returning None for now), is_goal_met() (delegates to task module), available_actions property. StepResult dataclass: observation, success, message, done, info.

@@ -1,0 +1,1 @@
+# TODO: SPRITES dict — entity_type -> (x, y, w, h) rects on the spritesheet, hand-measured, large furniture/appliances only. EMOJI dict for foods and held items: egg, flour, butter, milk, sugar, batter, cake, apple.
