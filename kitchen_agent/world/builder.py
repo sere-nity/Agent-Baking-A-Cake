@@ -51,11 +51,11 @@ def build_kitchen_base() -> World:
         ),
         Appliance(
             id="counter_4", name="counter",
-            position=Position(x=7, y=0), appliance_type="counter",
+            position=Position(x=7, y=0), appliance_type="counter_corner",
         ),
         Appliance(
             id="counter_5", name="counter",
-            position=Position(x=7, y=1), appliance_type="counter",
+            position=Position(x=7, y=1), appliance_type="counter_side",
         ),
         Appliance(
             id="oven", name="oven",

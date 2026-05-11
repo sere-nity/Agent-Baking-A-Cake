@@ -88,8 +88,19 @@ class KitchenEnv:
     def observe(self) -> Observation:
         return build_observation(self.world)
 
-    def render(self) -> np.ndarray | None:
-        return None
+    def render(
+        self,
+        current_action: str | None = None,
+        current_thought: str | None = None,
+    ) -> np.ndarray | None:
+        if self._world is None:
+            return None
+        from kitchen_agent.rendering.renderer import render_world_array
+        return render_world_array(
+            self._world,
+            current_action=current_action,
+            current_thought=current_thought,
+        )
 
     def is_goal_met(self) -> bool:
         if self._world is None:
