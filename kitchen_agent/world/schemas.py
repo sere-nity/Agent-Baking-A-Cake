@@ -126,6 +126,14 @@ class World(BaseModel):
     def get(self, entity_id: str) -> Ingredient | Container | Appliance:
         return self.entities[entity_id]
 
+    def entity_position(self, entity_id: str) -> Position | None:
+        """The tile this entity sits on, walking up the in_id chain to its
+        rooted appliance. None if the entity is held or has no anchor."""
+        ent = self.entities.get(entity_id)
+        if ent is None:
+            return None
+        return self._effective_position(ent)
+
     def is_blocked(self, pos: Position) -> bool:
         if pos.x < 0 or pos.x >= self.width or pos.y < 0 or pos.y >= self.height:
             return True
