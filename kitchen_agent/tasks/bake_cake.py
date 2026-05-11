@@ -30,9 +30,18 @@ def starting_world() -> World:
     ]
     # Cake tools on the central counter.
     counter_items = [
-        Container(id="mixing_bowl", name="mixing bowl", in_id="counter_2"),
-        Container(id="whisk_1", name="whisk", in_id="counter_2"),
-        Container(id="cake_tin", name="cake tin", in_id="counter_2"),
+        Container(
+            id="mixing_bowl", name="mixing bowl",
+            container_type="bowl", in_id="counter_2",
+        ),
+        Container(
+            id="whisk_1", name="whisk",
+            container_type="whisk", in_id="counter_2",
+        ),
+        Container(
+            id="cake_tin", name="cake tin",
+            container_type="tin", in_id="counter_2",
+        ),
     ]
 
     fridge = world.entities["fridge"]

@@ -66,6 +66,13 @@ class Container(BaseModel):
     kind: Literal["container"] = "container"
     id: str
     name: str
+    container_type: str = Field(
+        default="",
+        description=(
+            "Category for emoji/sprite lookup (e.g. 'bowl', 'tin', 'pan'). "
+            "Optional; renderer falls back through `name` → `container_type` → text."
+        ),
+    )
     in_id: str | None = Field(default=None, description=_IN_ID_DESC)
     contents: list[str] = Field(default_factory=list, description=_CONTENTS_DESC)
     contents_whisked: bool = False
