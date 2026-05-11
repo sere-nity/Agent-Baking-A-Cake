@@ -29,7 +29,7 @@ outputs/*
 !outputs/.gitkeep
 
 # Markdown (per user request)
-*.md
+Plan.md
 
 # Secrets / local config
 .env.local
