@@ -24,9 +24,10 @@ venv/
 .idea/
 .vscode/
 
-# Outputs (keep dir, ignore contents)
+# Outputs (keep dir + the demo gif checked into the README, ignore the rest)
 outputs/*
 !outputs/.gitkeep
+!outputs/demo_bake_cake.gif
 
 # Markdown (per user request)
 Plan.md
