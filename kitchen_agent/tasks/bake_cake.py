@@ -25,8 +25,8 @@ def starting_world() -> World:
     ]
     # Dry goods on the corner counter (no pantry in this layout).
     dry_goods_items = [
-        Ingredient(id="flour_1", food="flour", name="flour", in_id="counter_4"),
-        Ingredient(id="sugar_1", food="sugar", name="sugar", in_id="counter_4"),
+        Ingredient(id="flour_1", food="flour", name="flour", in_id="counter_3"),
+        Ingredient(id="sugar_1", food="sugar", name="sugar", in_id="counter_3"),
     ]
     # Cake tools on the central counter.
     counter_items = [
@@ -37,17 +37,17 @@ def starting_world() -> World:
 
     fridge = world.entities["fridge"]
     counter_2 = world.entities["counter_2"]
-    counter_4 = world.entities["counter_4"]
+    counter_3 = world.entities["counter_3"]
     assert isinstance(fridge, Appliance)
     assert isinstance(counter_2, Appliance)
-    assert isinstance(counter_4, Appliance)
+    assert isinstance(counter_3, Appliance)
 
     for ent in fridge_items:
         world.entities[ent.id] = ent
         fridge.contents.append(ent.id)
     for ent in dry_goods_items:
         world.entities[ent.id] = ent
-        counter_4.contents.append(ent.id)
+        counter_3.contents.append(ent.id)
     for ent in counter_items:
         world.entities[ent.id] = ent
         counter_2.contents.append(ent.id)
