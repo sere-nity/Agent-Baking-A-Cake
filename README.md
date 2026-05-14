@@ -54,15 +54,6 @@ Expected: the agent succeeds in ~25–30 steps, about 1–2 minutes of wall cloc
 - `run_bake_cake_<ts>.gif` — animated playback. `wait` frames are compressed in the GIF so on-screen cook time appears faster than the simulator tick — the JSONL log has the true `t`.
 
 
-## The insurance task
-
-```bash
-python -m kitchen_agent.run --task get_apple
-```
-
-Two steps, ~10 seconds. If this works the harness works; the cake is the same loop with more turns.
-
-
 ## Layout
 
 ```
