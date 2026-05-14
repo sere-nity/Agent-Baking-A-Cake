@@ -1,4 +1,3 @@
-# kitchen-agent
 
 Humanoid's vision is for robots to revolutionalise households in 2031. Thus we simulate Claude chef. 
 
